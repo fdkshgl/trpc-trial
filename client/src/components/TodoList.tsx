@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import { CSSProperties, useState } from "react";
 import { trpc } from "../utils/trpc";
 
 const styles: { [key: string]: CSSProperties } = {
@@ -59,10 +59,25 @@ const styles: { [key: string]: CSSProperties } = {
 };
 
 const TodoList = () => {
+
+  const [inputValue, setInputValue] = useState<string>('');
+
   const test = trpc.test.useQuery();
   console.log(test.data);
   const allTodos = trpc.getTodos.useQuery();
   console.log(allTodos.data);
+
+  const addTodo = trpc.addTodo.useMutation({
+    onSettled: () => {
+      allTodos.refetch();
+    }
+  });
+
+  const deleteTodo = trpc.deleteTodo.useMutation({
+    onSettled: () => {
+      allTodos.refetch();
+    }
+  });
 
   return (
     <div style={styles.container}>
@@ -72,14 +87,28 @@ const TodoList = () => {
           type="text"
           placeholder="What needs to be done?"
           style={styles.input}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setInputValue(e.target.value)
+          }
+          value={inputValue}
         />
-        <button style={styles.addButton}>Add Todo</button>
+        <button
+          style={styles.addButton}
+          onClick={() => {
+            addTodo.mutate(inputValue)
+            setInputValue("");
+          }}
+        >Add Todo</button>
         <ul style={styles.list}>
           {allTodos.data?.map((todo) => {
             return (
               <li style={styles.listItem} key={todo.id}>
                 {todo.content}
-                <span style={styles.deleteButton}>✖</span>
+                <span
+                  style={styles.deleteButton}
+                  onClick={() => {
+                    deleteTodo.mutate(todo.id);
+                  }}>✖</span>
               </li>
             )
           })
