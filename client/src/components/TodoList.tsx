@@ -1,18 +1,17 @@
-import { CSSProperties, useState } from "react";
+import { CSSProperties } from "react";
 import { trpc } from "../utils/trpc";
 
 const styles: { [key: string]: CSSProperties } = {
   container: {
     display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     backgroundColor: "#cba471",
   },
   innerContainer: {
     width: "50%",
-    height: "50%",
     padding: "20px",
+    margin: "10px",
     borderRadius: "15px",
     backgroundColor: "#ccd8e1",
     boxShadow: "0px 8px 16px 0px rgba(0,0,0,0.2)",
@@ -58,65 +57,43 @@ const styles: { [key: string]: CSSProperties } = {
   },
 };
 
-const TodoList = () => {
-
-  const [inputValue, setInputValue] = useState<string>('');
-
-  const test = trpc.test.useQuery();
-  console.log(test.data);
-  const allTodos = trpc.getTodos.useQuery();
-  console.log(allTodos.data);
-
-  const addTodo = trpc.addTodo.useMutation({
-    onSettled: () => {
-      allTodos.refetch();
-    }
-  });
-
-  const deleteTodo = trpc.deleteTodo.useMutation({
-    onSettled: () => {
-      allTodos.refetch();
-    }
-  });
+const TestValue = () => {
+  const fetchTestValues = trpc.test.useQuery();
+  // console.log("型定義:", typeof fetchTestValues.data?.value)
+  // console.log("値:", fetchTestValues.data?.value)
+  
+  const fetchTodoList = trpc.todoList.useQuery();
+  // console.log("fetchTodoList:", fetchTodoList.data)
+  // console.log("fetchTodoList:", typeof fetchTodoList.data)
 
   return (
     <div style={styles.container}>
       <div style={styles.innerContainer}>
-        <p style={styles.title}>Todo List</p>
-        <input
-          type="text"
-          placeholder="What needs to be done?"
-          style={styles.input}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setInputValue(e.target.value)
-          }
-          value={inputValue}
-        />
-        <button
-          style={styles.addButton}
-          onClick={() => {
-            addTodo.mutate(inputValue)
-            setInputValue("");
-          }}
-        >Add Todo</button>
+        <p style={styles.title}>問１</p>
         <ul style={styles.list}>
-          {allTodos.data?.map((todo) => {
+          <li style={styles.listItem}>型：{typeof fetchTestValues.data?.value}</li>
+          <li style={styles.listItem}>入力値：{fetchTestValues.data?.value}</li>
+        </ul>
+      </div>
+
+      <div style={styles.innerContainer}>
+      <p style={styles.title}>問２</p>
+        <ul style={styles.list}>
+          {fetchTodoList.data?.map((todo) => {
             return (
-              <li style={styles.listItem} key={todo.id}>
-                {todo.content}
-                <span
-                  style={styles.deleteButton}
-                  onClick={() => {
-                    deleteTodo.mutate(todo.id);
-                  }}>✖</span>
-              </li>
+              // 問２に正しい回答を入れるとエラーが消えます
+              <div key={todo.id}>
+                <li style={styles.listItem}>ID：{typeof todo.id}</li>
+                <li style={styles.listItem}>ユーザ名：{typeof todo.user}</li>
+                <li style={styles.listItem}>内容：{typeof todo.content}</li>
+                <li style={styles.listItem}>作成日時：{typeof todo.createAt}</li>
+              </div>
             )
-          })
-          }
+          })}
         </ul>
       </div>
     </div>
   );
 };
 
-export default TodoList;
+export default TestValue;

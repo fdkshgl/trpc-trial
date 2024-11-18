@@ -2,57 +2,50 @@ import express from "express";
 import { initTRPC } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import cors from "cors";
-import { z } from "zod";
+import { date, z } from "zod";
 
+// サーバの設定
 const app = express();
 const PORT = 5000;
 app.use(cors());
-
-// app.get("/", (req: any, res: any) => res.send("Hello"));
 
 const t = initTRPC.create();
 const router = t.router;
 const publicProcedure = t.procedure;
 
+//----------- 問１ -----------
+// 以下の内容を書き換えて、Typeが共有されていることを確認しよう
+interface TestTypes {
+  value: number;
+}
+const TestValues: TestTypes = {
+  value: 1,
+};
+//----------- 問２ -----------
+// 以下のinterfaceを完成させてエラーを解消してみよう
 interface Todo {
-  id: string,
-  content: string
+  id:number,
+  user:string,
+  content:string,
+  createAt: Date
 }
 
-const todoList:Todo[] = [
+const todoList: Partial<Todo>[] = [
   {
-    id: "1",
-    content: "散歩"
-  },
-  {
-    id: "2",
-    content: "プログラミング"
-  },
+    id: 1,
+    user: "tarou",
+    content: "プログラミング",
+    createAt: new Date(2024, 1, 1),
+  }
 ];
 
+//----------- 問３ -----------
+// 以下のrouterに内容を追加し、APIを一から作成してみよう
 const appRouter = router({
   test: publicProcedure.query(() => {
-    return "TEST TRPC";
+    return TestValues;
   }),
-  getTodos: publicProcedure.query(()=>{
-    return todoList;
-  }),
-  addTodo: publicProcedure.input(z.string()).mutation((req)=>{
-    const id = `${Math.random()}`;
-    const todo = {
-      id, 
-      content:req.input
-    };
-    todoList.push(todo);
-    return todoList;
-  }),
-  deleteTodo: publicProcedure.input(z.string()).mutation((req)=>{
-    const idTodoDelete = req.input; 
-    const indexToDelete = todoList.findIndex(
-      (todo) => todo.id === idTodoDelete
-    );
-
-    todoList.splice(indexToDelete, 1);
+  todoList: publicProcedure.query(() => {
     return todoList;
   }),
 });
@@ -62,7 +55,7 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
   })
-)
+);
 app.listen(PORT);
 
 export type AppRouter = typeof appRouter;
